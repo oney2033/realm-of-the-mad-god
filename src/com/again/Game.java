@@ -1,7 +1,6 @@
 package com.again;
 
 import java.awt.Canvas;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.image.BufferStrategy;
@@ -9,6 +8,9 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 
 import javax.swing.JFrame;
+
+import com.level.Level;
+import com.level.RandomLevel;
 
 
 public class Game extends Canvas implements Runnable 
@@ -23,6 +25,8 @@ public class Game extends Canvas implements Runnable
 	private Thread thread;
 	private Screen screen;
 	private JFrame frame;
+	private keyboard key;
+	private Level level;
 	private boolean running = false;
 	
 	private BufferedImage image = new BufferedImage(width,height,BufferedImage.TYPE_INT_RGB);
@@ -35,6 +39,10 @@ public class Game extends Canvas implements Runnable
 		setPreferredSize(size);
 		screen = new Screen(width,height);
 		frame = new JFrame();
+		key = new keyboard();
+		level = new RandomLevel(64,64);
+		addKeyListener(key);
+		
 	}
 	
 	public synchronized void start()
@@ -65,7 +73,7 @@ public class Game extends Canvas implements Runnable
 		double delta = 0;
 		int frames =0;
 		int updates =0;
-		boolean c = false;
+		requestFocus();
 		while(running)
 		{
 			long now = System.nanoTime();
@@ -89,10 +97,14 @@ public class Game extends Canvas implements Runnable
 			}
 		}
 	}
-	
+	int x =0,y=0;
 	public void update()
 	{
-		
+		key.update();
+		if(key.up)y--;
+		if(key.down)y++;
+		if(key.left)x--;
+		if(key.right)x++;
 	}
 	
 	public void render()
@@ -103,8 +115,11 @@ public class Game extends Canvas implements Runnable
 			createBufferStrategy(3);
 			return;
 		}
+		
 		screen.Clear();
-		screen.Render();
+		level.render(x, y, screen);
+		//screen.Render(x,y);
+		
 		for(int i = 0; i < pixels.length; i++)
 		{
 			pixels[i] = screen.Pixels[i];
@@ -118,17 +133,16 @@ public class Game extends Canvas implements Runnable
 	
 	public static void main(String[] args)
 	{
-		Game game = new Game();
-		game.frame.setResizable(false);
-		game.frame.setTitle(title);
-		game.frame.add(game);
-		game.frame.pack();
-		game.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		game.frame.setLocationRelativeTo(null);
-		game.frame.setVisible(true);
+		Game game = new Game();  		// 创建游戏对象
+		game.frame.setResizable(false); //设置窗口不可调整大小
+		game.frame.setTitle(title);		//设置窗口标题
+		game.frame.add(game);			//将游戏添加到窗口
+		game.frame.pack();				// 调整窗口大小以适应其子组件
+		game.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);// 设置窗口关闭操作
+		game.frame.setLocationRelativeTo(null);// 设置窗口位置
+		game.frame.setVisible(true);	// 设置窗口可见
 		
-		game.start();
+		game.start(); // 启动游戏
 		
 	}
 }
-
